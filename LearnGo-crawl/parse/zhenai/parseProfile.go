@@ -37,7 +37,7 @@ func ParseProfile(contents []byte, url string, name string) engine.ParseResult {
 		profile.Height = height
 	}
 	//体重
-	weight, err := strconv.Atoi(extractString(contents,weightRe))
+	weight, err := strconv.Atoi(extractString(contents, weightRe))
 	if err == nil {
 		profile.Weight = weight
 	}
@@ -48,15 +48,35 @@ func ParseProfile(contents []byte, url string, name string) engine.ParseResult {
 	//星座
 	profile.Constellation = extractString(contents, constellationRe)
 	result := engine.ParseResult{
-		Items: []interface{}{profile},
+		Items: []engine.Item{
+			{
+				Url:     url,
+				Type:    "zhenai",
+				Id:      extractString([]byte(url), idRe),
+				Payload: profile,
+			},
+		},
 	}
 	return result
 }
 func extractString(contents []byte, re *regexp.Regexp) string {
-	match := re.FindAllSubmatch(contents,-1)
+	match := re.FindAllSubmatch(contents, -1)
 	if len(match) >= 2 {
 		return string(match[0][1])
 	} else {
 		return ""
+	}
+}
+
+type ProfileParse struct {
+	userName string
+}
+
+func (p *ProfileParse) Serialize() (name string, args interface{}) {
+	return "ProfileParse", p.userName
+}
+func NewprofileParse(name string) *ProfileParse {
+	return &ProfileParse{
+		userName: name,
 	}
 }

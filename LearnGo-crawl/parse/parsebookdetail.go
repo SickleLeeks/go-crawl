@@ -29,7 +29,7 @@ func ParseBookDetail(contents []byte, bookname string) engine.ParseResult {
 	bookdetail.Score = ExtraString(contents, scoreRe)
 	bookdetail.Intro = ExtraString(contents, inforRe)
 	result := engine.ParseResult{
-		Items: []interface{}{bookdetail},
+		Items: []engine.Item{},
 	}
 	return result
 

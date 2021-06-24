@@ -5,10 +5,13 @@ import (
 	"log"
 )
 
+type Processor func(request Request) (ParseResult, error)
+
 type ConcurrentEngine struct {
-	Scheduler Scheduler
-	WorkCount int
-	ItemChan  chan interface{}
+	Scheduler        Scheduler
+	WorkCount        int
+	ItemChan         chan Item
+	RequestProcessor Processor
 }
 type Scheduler interface {
 	Submit(Request)
@@ -21,30 +24,30 @@ func (e *ConcurrentEngine) Run(seeds ...Request) {
 	out := make(chan ParseResult)
 	e.Scheduler.Run()
 	for i := 0; i < e.WorkCount; i++ {
-		CreateWork(e.Scheduler.WorkChan(), out, e.Scheduler)
+		e.CreateWork(e.Scheduler.WorkChan(), out, e.Scheduler)
 	}
 	for _, r := range seeds {
 		e.Scheduler.Submit(r)
 	}
-	//itemcount := 0
 	for {
 		result := <-out
+
 		for _, item := range result.Items {
-			//log.Printf("Got item:%d,%v", itemcount, item)
-			//itemcount++
 			go func() { e.ItemChan <- item }()
 		}
+
 		for _, request := range result.Requests {
 			e.Scheduler.Submit(request)
 		}
+
 	}
 }
-func CreateWork(in chan Request, out chan ParseResult, s Scheduler) {
+func (e *ConcurrentEngine) CreateWork(in chan Request, out chan ParseResult, s Scheduler) {
 	go func() {
 		for {
 			s.WorkReady(in)
 			request := <-in
-			result, err := worker(request)
+			result, err := e.RequestProcessor(request)
 			if err != nil {
 				continue
 			}
@@ -53,12 +56,12 @@ func CreateWork(in chan Request, out chan ParseResult, s Scheduler) {
 	}()
 }
 
-func worker(r Request) (ParseResult, error) {
+func Worker(r Request) (ParseResult, error) {
 	//fmt.Printf("Fetch url:%s\n", r.Url)
 	body, err := fetcher.WebFetch(r.Url)
 	if err != nil {
 		log.Printf("Fetch Error: %s", r.Url)
 		return ParseResult{}, err
 	}
-	return r.ParseFunc(body), nil
+	return r.Parse.Parse(body, r.Url), nil
 }

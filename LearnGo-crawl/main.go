@@ -15,18 +15,14 @@ import (
 )
 
 func main() {
-	//engine.Run(engine.Request{
-	//	//Url:       "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B",
-	//	//ParseFunc: parse.ParseBookList,
-	//	Url:       "https://book.douban.com",
-	//	ParseFunc: parse.ParseTag,
-	//	//Url:       "https://book.douban.com/subject/4822685/",
-	//	//ParseFunc: parse.ParseBookDetail,
-	//})
+	itemsave, err := persist.ItemSave()
+	if err != nil {
+		panic(err)
+	}
 	e := engine.ConcurrentEngine{
 		&scheduler.QueueScheduler{},
 		100,
-		persist.ItemSave(),
+		itemsave,
 	}
 	e.Run(engine.Request{
 		Url:       "https://book.douban.com",

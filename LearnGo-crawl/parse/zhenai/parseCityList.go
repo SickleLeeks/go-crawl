@@ -7,7 +7,7 @@ import (
 
 const cityListRe = `(http://www.zhenai.com/zhenghun/[0-9a-z]+)"[^>]*>([^<]+)</a>`
 
-func ParseCityList(contents string) engine.ParseResult {
+func ParseCityList(contents string, _ string) engine.ParseResult {
 	re := regexp.MustCompile(cityListRe)
 	matches := re.FindAllStringSubmatch(contents, -1)
 	result := engine.ParseResult{}
@@ -15,8 +15,8 @@ func ParseCityList(contents string) engine.ParseResult {
 		//result.Items = append(result.Items,string(m[2]))
 		result.Requests = append(
 			result.Requests, engine.Request{
-				Url:       m[1],
-				ParseFunc: ParseCity,
+				Url:   m[1],
+				Parse: engine.NewFuncparse(ParseCity, "Parsecity"),
 			})
 	}
 	return result

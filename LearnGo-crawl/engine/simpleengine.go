@@ -6,10 +6,9 @@ import (
 )
 
 type simpleEngine struct {
-
 }
 
-func (s simpleEngine)Run(seeds ...Request) {
+func (s simpleEngine) Run(seeds ...Request) {
 	var requests []Request
 	for _, e := range seeds {
 		requests = append(requests, e)
@@ -22,7 +21,7 @@ func (s simpleEngine)Run(seeds ...Request) {
 		if err != nil {
 			log.Printf("Fetch Error: %s", r.Url)
 		}
-		parseresult := r.ParseFunc(body)
+		parseresult := r.Parse.Parse(body, r.Url)
 		requests = append(requests, parseresult.Requests...)
 		for _, item := range parseresult.Items {
 			log.Printf("Got item:%s", item)
